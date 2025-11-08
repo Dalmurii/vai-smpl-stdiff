@@ -6,6 +6,7 @@
 !CMakeLists.txt
 
 !external/
+!external/**
 
 !10-mnist/
 !10-mnist/**
