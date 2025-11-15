@@ -15,6 +15,8 @@ add_executable(${PROJECT_NAME}
     core/jsonParser.cpp
     model/embedding/embeddingNode.cpp
     model/embedding/embeddingNodeTest.cpp
+    model/attention/attentionNode.cpp
+    model/attention/attentionNodeTest.cpp
 )
 
 add_definitions(

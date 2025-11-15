@@ -1,6 +1,7 @@
 void tokenizerTest();
 void dataLoaderTest();
 void embeddingNodeTest();
+void attentionNodeTest();
 
 int main()
 {
@@ -12,6 +13,9 @@ int main()
 
     // Run embedding node tests (Vulkan version)
     embeddingNodeTest();
+
+    // Run attention node tests (Multi-Head Attention)
+    attentionNodeTest();
 
     return 0;
 }
