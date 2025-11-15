@@ -168,3 +168,4 @@ add_subdirectory(11-mnist-refactor)
 
 add_subdirectory(100-UNet-seungwoo)
 # add_subdirectory(114-MobileNetV2-hwPark)
+add_subdirectory(110-GPT2-hyungkyu)
