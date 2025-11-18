@@ -3,8 +3,9 @@ void dataLoaderTest();
 void embeddingNodeTest();
 void attentionNodeTest();
 void transformerNodeTest();
-void gpt2Test();
-void generationTest();
+void testGPT2();
+void testGPT2Generation();
+void testWithPretrainedWeights();
 
 int main()
 {
@@ -23,11 +24,11 @@ int main()
     // Run transformer node tests (LayerNorm, GELU, FeedForward)
     transformerNodeTest();
 
-    // Run text generation tests FIRST (before GPU resources are exhausted)
-    generationTest();
+    // Run GPT-2 complete test suite
+    testGPT2();
 
-    // Run GPT-2 model tests (may fail on full-size model due to GPU limits)
-    gpt2Test();
+    // Run GPT-2 text generation test
+    testGPT2Generation();
 
     return 0;
 }

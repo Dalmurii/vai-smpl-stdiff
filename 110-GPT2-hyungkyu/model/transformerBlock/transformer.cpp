@@ -1,4 +1,4 @@
-#include "transformerNode.h"
+#include "transformer.h"
 #include "../attention/attentionNode.h"
 #include "../../core/error.h"
 #include <cmath>
@@ -71,8 +71,8 @@ LayerNormNode::LayerNormNode(uint32_t normalized_shape, float eps)
     : normalized_shape(normalized_shape), eps(eps)
 {
     addSlot("in0", NodeSlot::input);
-    addSlot("scale", NodeSlot::internal);  // Learnable parameter
-    addSlot("shift", NodeSlot::internal);  // Learnable parameter
+    addSlot("scale", NodeSlot::input);  // Learnable parameter
+    addSlot("shift", NodeSlot::input);  // Learnable parameter
     addSlot("out0", NodeSlot::output);
 
     layerNormPipeline = requestPipeline(src_layer_norm);
@@ -260,8 +260,8 @@ FeedForwardNode::FeedForwardNode(uint32_t d_model)
     : d_model(d_model), hidden_dim(4 * d_model)
 {
     addSlot("in0", NodeSlot::input);
-    addSlot("weight1", NodeSlot::internal);  // [4*d_model, d_model]
-    addSlot("weight2", NodeSlot::internal);  // [d_model, 4*d_model]
+    addSlot("weight1", NodeSlot::input);  // [4*d_model, d_model] (learnable parameter)
+    addSlot("weight2", NodeSlot::input);  // [d_model, 4*d_model] (learnable parameter)
     addSlot("out0", NodeSlot::output);
 
     linear1Pipeline = requestPipeline(src_linear_ff);
@@ -483,21 +483,18 @@ void AddNode::run(CommandBuffer cmdBuff)
 }
 
 // ============================================================================
-// TransformerBlockNode: NodeGroup with residual connections
+// TransformerBlock: NodeGroup with residual connections
 // ============================================================================
 
-TransformerBlockNode::TransformerBlockNode(uint32_t d_model, uint32_t num_heads)
-    : NodeGroup(), d_model(d_model), num_heads(num_heads)
+TransformerBlock::TransformerBlock(uint32_t d_model, uint32_t num_heads)
+    : NodeGroup(),
+      d_model(d_model),
+      num_heads(num_heads),
+      norm1(d_model),
+      attention(d_model, d_model, num_heads),
+      norm2(d_model),
+      feedforward(d_model)
 {
-    // Create internal nodes using make_unique
-    inputRouter = std::make_unique<IdentityNode>();  // Routes input to multiple paths
-    norm1 = std::make_unique<LayerNormNode>(d_model);
-    attention = std::make_unique<MultiHeadAttentionNode>(d_model, d_model, num_heads);
-    add1 = std::make_unique<AddNode>();
-    norm2 = std::make_unique<LayerNormNode>(d_model);
-    feedforward = std::make_unique<FeedForwardNode>(d_model);
-    add2 = std::make_unique<AddNode>();
-
     // Build graph: x = x + Attention(LayerNorm(x))
     //              x = x + FeedForward(LayerNorm(x))
     //
@@ -508,37 +505,36 @@ TransformerBlockNode::TransformerBlockNode(uint32_t d_model, uint32_t num_heads)
     //                   (first residual skip)                    (second residual skip)
 
     // Fan out input to main path and first residual
-    *inputRouter - *norm1;            // Main path: input -> norm1
-    *inputRouter - "in0" / *add1;     // First residual: input -> add1.in0
+    inputRouter - norm1;            // Main path: input -> norm1
+    inputRouter - "in0" / add1;     // First residual: input -> add1.in0
 
     // First sub-path: norm1 -> attention -> add1.in1 (main path)
-    *norm1 - *attention - "in1" / *add1;
+    norm1 - attention - "in1" / add1;
 
     // Second sub-path: add1 -> norm2 -> feedforward -> add2.in1 (main path)
-    *add1 - *norm2 - *feedforward - "in1" / *add2;
+    add1 - norm2 - feedforward - "in1" / add2;
 
     // Second residual connection: add1.out0 -> add2.in0
-    *add1 - "in0" / *add2;
+    add1 - "in0" / add2;
 
     // Define external slots
-    defineSlot("in0", inputRouter->slot("in0"));  // External input goes to inputRouter
-    defineSlot("out0", add2->slot("out0"));       // Final output comes from add2
+    defineSlot("in0", inputRouter.slot("in0"));  // External input goes to inputRouter
+    defineSlot("out0", add2.slot("out0"));       // Final output comes from add2
 }
 
-Tensor& TransformerBlockNode::operator[](const std::string& name)
+Tensor& TransformerBlock::operator[](const std::string& name)
 {
     // Provide access to internal weights
-    if (name == "norm1_scale") return (*norm1)["scale"];
-    if (name == "norm1_shift") return (*norm1)["shift"];
-    if (name == "attn_wq") return (*attention)["W_query"];
-    if (name == "attn_wk") return (*attention)["W_key"];
-    if (name == "attn_wv") return (*attention)["W_value"];
-    if (name == "attn_wout") return (*attention)["W_out"];
-    if (name == "norm2_scale") return (*norm2)["scale"];
-    if (name == "norm2_shift") return (*norm2)["shift"];
-    if (name == "ff_w1") return (*feedforward)["weight1"];
-    if (name == "ff_w2") return (*feedforward)["weight2"];
+    if (name == "norm1_scale") return norm1["scale"];
+    if (name == "norm1_shift") return norm1["shift"];
+    if (name == "attn_wq") return attention["W_query"];
+    if (name == "attn_wk") return attention["W_key"];
+    if (name == "attn_wv") return attention["W_value"];
+    if (name == "attn_wout") return attention["W_out"];
+    if (name == "norm2_scale") return norm2["scale"];
+    if (name == "norm2_shift") return norm2["shift"];
+    if (name == "ff_w1") return feedforward["weight1"];
+    if (name == "ff_w2") return feedforward["weight2"];
 
-    throw std::runtime_error("No such weight in TransformerBlockNode: " + name);
+    throw std::runtime_error("No such weight in TransformerBlock: " + name);
 }
-

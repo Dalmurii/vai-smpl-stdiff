@@ -1,4 +1,4 @@
-#include "transformerNode.h"
+#include "transformer.h"
 #include "../attention/attentionNode.h"
 #include "../testHelpers.h"
 #include "../../core/neuralNet.h"
@@ -465,7 +465,7 @@ void testTransformerBlock()
 
     // Create neural network
     NeuralNet net(netGlobalDevice, 1, 1);
-    TransformerBlockNode transformerBlock(d_model, num_heads);
+    TransformerBlock transformerBlock(d_model, num_heads);
 
     net.input(0) - transformerBlock - net.output(0);
 

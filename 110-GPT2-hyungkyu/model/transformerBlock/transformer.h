@@ -1,10 +1,9 @@
-#ifndef TRANSFORMER_NODE_H
-#define TRANSFORMER_NODE_H
+#ifndef TRANSFORMER_H
+#define TRANSFORMER_H
 
 #include "../../core/neuralNet.h"
 #include "../../core/vulkanApp.h"
 #include "../attention/attentionNode.h"
-#include <memory>
 
 using namespace vk;
 
@@ -127,25 +126,25 @@ public:
  * - x = x + MultiHeadAttention(LayerNorm(x))
  * - x = x + FeedForward(LayerNorm(x))
  */
-class TransformerBlockNode : public NodeGroup
+class TransformerBlock : public NodeGroup
 {
     uint32_t d_model;
     uint32_t num_heads;
 
-    // Internal nodes (using smart pointers)
-    std::unique_ptr<IdentityNode> inputRouter;  // Routes input to both main path and residual
-    std::unique_ptr<LayerNormNode> norm1;
-    std::unique_ptr<MultiHeadAttentionNode> attention;
-    std::unique_ptr<AddNode> add1;
-    std::unique_ptr<LayerNormNode> norm2;
-    std::unique_ptr<FeedForwardNode> feedforward;
-    std::unique_ptr<AddNode> add2;
+    // Internal nodes (direct objects like ConvBlock pattern)
+    IdentityNode inputRouter;  // Routes input to both main path and residual
+    LayerNormNode norm1;
+    MultiHeadAttentionNode attention;
+    AddNode add1;
+    LayerNormNode norm2;
+    FeedForwardNode feedforward;
+    AddNode add2;
 
 public:
-    TransformerBlockNode(uint32_t d_model, uint32_t num_heads);
+    TransformerBlock(uint32_t d_model, uint32_t num_heads);
 
     // Provide weight access
     Tensor& operator[](const std::string& name);
 };
 
-#endif // TRANSFORMER_NODE_H
+#endif // TRANSFORMER_H
