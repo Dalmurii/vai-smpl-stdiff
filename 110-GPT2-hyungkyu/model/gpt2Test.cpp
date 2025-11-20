@@ -213,8 +213,8 @@ static GPT2Net createNetworkWithPretrainedWeights(
 static BPETokenizer loadTokenizer()
 {
     std::cout << "Loading tokenizer..." << std::endl;
-    BPETokenizer tokenizer("110-GPT2-hyungkyu/vocab.json",
-                          "110-GPT2-hyungkyu/merges.txt");
+    BPETokenizer tokenizer("110-GPT2-hyungkyu/assets/vocab.json",
+                          "110-GPT2-hyungkyu/assets/merges.txt");
     std::cout << "✓ Tokenizer loaded\n" << std::endl;
     return tokenizer;
 }
