@@ -15,27 +15,47 @@ C++ implementation of GPT-2 (Generative Pre-trained Transformer 2) using Vulkan 
 
 ```
 110-GPT2-hyungkyu/
-├── assets/
-│   ├── vocab.json              # GPT-2 vocabulary (50,257 tokens)
-│   ├── merges.txt              # BPE merge rules (50,000 rules)
-│   ├── the-verdict.txt         # Test data file
+├── assets/                          # Data files and model weights
+│   ├── vocab.json                   # GPT-2 vocabulary (50,257 tokens)
+│   ├── merges.txt                   # BPE merge rules (50,000 rules)
+│   ├── the-verdict.txt              # Test data file
 │   └── weights/
-│       └── 124M/               # GPT-2 model weights
-│           ├── gpt2_weights.bin      # Binary weights (converted)
-│           └── gpt2_config.txt       # Model configuration
-├── utils/
-│   ├── download_gpt2_weights.py      # Download weights from HuggingFace
-│   └── convert_openai_weights.py     # Convert OpenAI checkpoint to binary
-├── debug/
-│   └── check_*.py              # Weight verification scripts
-├── core/                       # Core neural network framework
-├── tokenizer/                  # BPE tokenizer implementation
-├── model/                      # GPT-2 model architecture
-│   ├── gpt2Net.h              # Main GPT-2 network
-│   ├── gpt2Weights.h          # Weight loading
-│   ├── gpt2Generation.h       # Text generation
-│   └── gpt2Test.cpp           # Test functions
-└── main.cpp                    # Entry point
+│       └── 124M/                    # GPT-2 124M model
+│           ├── checkpoint           # TensorFlow checkpoint metadata
+│           ├── hparams.json         # Model hyperparameters
+│           ├── model.ckpt.*         # TensorFlow checkpoint files
+│           ├── gpt2_weights.bin     # Binary weights (converted)
+│           └── gpt2_config.txt      # Model configuration
+├── utils/                           # Utility scripts
+│   ├── setup_weights.py             # One-step download + convert (recommended)
+│   ├── download_gpt2_weights.py     # Download OpenAI checkpoint
+│   └── convert_openai_weights.py    # Convert checkpoint to binary
+├── debug/                           # Debugging and verification scripts
+│   ├── check_weights.py             # Verify weight loading
+│   ├── check_bias_values.py         # Analyze bias magnitudes
+│   ├── check_token.py               # Token ID decoder
+│   ├── compare_with_pytorch.py      # PyTorch comparison
+│   └── ...                          # Other verification scripts
+├── core/                            # Core neural network framework
+│   ├── neuralNet.h                  # Base neural network class
+│   ├── tensor.h                     # Tensor operations
+│   └── vulkanApp.h                  # Vulkan compute setup
+├── tokenizer/                       # BPE tokenizer implementation
+│   ├── tokenizer.h                  # BPE tokenizer class
+│   └── test.cpp                     # Tokenizer tests
+├── dataloader/                      # Data loading utilities
+│   ├── dataloader.h                 # Text data loader
+│   └── test.cpp                     # Dataloader tests
+├── model/                           # GPT-2 model architecture
+│   ├── embedding/                   # Embedding layers
+│   ├── attention/                   # Multi-head attention
+│   ├── transformerBlock/            # Transformer block
+│   ├── gpt2Net.h                    # Main GPT-2 network
+│   ├── gpt2Weights.h                # Weight loading
+│   ├── gpt2Generation.h             # Text generation
+│   └── gpt2Test.cpp                 # Test functions
+├── main.cpp                         # Entry point (CLI interface)
+└── CMakeLists.txt                   # Build configuration
 
 ```
 
