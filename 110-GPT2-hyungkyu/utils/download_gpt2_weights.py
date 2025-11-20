@@ -39,17 +39,15 @@ def download_and_load_gpt2(model_size="124M", models_dir="../assets/weights/"):
 
 
 def download_file(url, destination, backup_url=None):
+    # Check if file already exists before making any network request
+    if os.path.exists(destination):
+        print(f"File already exists: {destination}")
+        return
+
     def _attempt_download(download_url):
         with urllib.request.urlopen(download_url) as response:
             # Get the total file size from headers, defaulting to 0 if not present
             file_size = int(response.headers.get("Content-Length", 0))
-
-            # Check if file exists and has the same size
-            if os.path.exists(destination):
-                file_size_local = os.path.getsize(destination)
-                if file_size == file_size_local:
-                    print(f"File already exists and is up-to-date: {destination}")
-                    return True  # Indicate success without re-downloading
 
             block_size = 1024  # 1 Kilobyte
 

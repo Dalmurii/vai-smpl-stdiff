@@ -58,53 +58,34 @@ C++ implementation of GPT-2 (Generative Pre-trained Transformer 2) using Vulkan 
 
 ## Setup Instructions
 
-### Step 1: Download Tokenizer Files
+### Step 1: Download and Convert Weights
 
-The tokenizer files (`vocab.json` and `merges.txt`) should already be in the `assets/` folder. If not, download them:
-
-```bash
-cd 110-GPT2-hyungkyu/assets
-curl -o vocab.json https://huggingface.co/gpt2/resolve/main/vocab.json
-curl -o merges.txt https://huggingface.co/gpt2/resolve/main/merges.txt
-```
-
-### Step 2: Download and Convert Weights
-
-#### Option A: From HuggingFace (One-Step)
-
-Download and convert weights directly from HuggingFace:
+Download GPT-2 checkpoint from OpenAI and convert to binary format in one command:
 
 ```bash
 cd 110-GPT2-hyungkyu
-python utils/download_gpt2_weights.py
+python utils/setup_weights.py
 ```
 
-This will:
-- Download GPT-2 weights from HuggingFace
-- Convert to binary format automatically
-- Save to `assets/weights/124M/gpt2_weights.bin`
+This script will:
+1. Download OpenAI GPT-2 checkpoint files from CDN
+2. Convert to binary format using `convert_openai_weights.py`
+3. Generate `assets/weights/124M/gpt2_weights.bin` and `gpt2_config.txt`
 
-#### Option B: From OpenAI Checkpoint (Two-Step)
+**Required Python packages:**
+```bash
+pip install numpy tensorflow
+```
 
-If you have OpenAI's original TensorFlow checkpoint:
+**For different model sizes:**
+```bash
+python utils/setup_weights.py --model 355M --output-dir assets/weights/355M
+# Options: 124M (default), 355M, 774M, 1558M
+```
 
-1. Download the checkpoint to `assets/weights/124M/`:
-   ```bash
-   # Download from https://openaipublic.blob.core.windows.net/gpt-2/models/124M/
-   # Files needed: model.ckpt.*, hparams.json, checkpoint
-   ```
+**Note:** Tokenizer files (`vocab.json`, `merges.txt`) are already included in the repository under `assets/` folder.
 
-2. Convert to binary format:
-   ```bash
-   cd 110-GPT2-hyungkyu
-   python utils/convert_openai_weights.py assets/weights/124M assets/weights/124M
-   ```
-
-This will create:
-- `assets/weights/124M/gpt2_weights.bin` - Binary weight file (~500MB)
-- `assets/weights/124M/gpt2_config.txt` - Model configuration
-
-### Step 3: Build the Project
+### Step 2: Build the Project
 
 ```bash
 # From vai-samples root directory
@@ -116,48 +97,89 @@ Or for Release build:
 cmake --build build --config Release --target 110-GPT2-hyungkyu
 ```
 
-### Step 4: Run Tests
+### Step 3: Run Tests
 
 ```bash
 # From vai-samples root directory
+
+# Run with default settings
 ./bin/debug/110-GPT2-hyungkyu.exe
+
+# Run with custom prompt
+./bin/debug/110-GPT2-hyungkyu.exe "Once upon a time"
+
+# Run with custom prompt and token count
+./bin/debug/110-GPT2-hyungkyu.exe "Once upon a time" 15
+
+# Show help
+./bin/debug/110-GPT2-hyungkyu.exe --help
 ```
+
+---
+
+## Advanced Setup (Alternative Methods)
+
+### Option A: Using HuggingFace Transformers
+
+Download and convert weights directly from HuggingFace (requires PyTorch):
+
+```bash
+cd 110-GPT2-hyungkyu
+python utils/download_gpt2_weights.py
+```
+
+**Required packages:** `pip install torch transformers numpy`
+
+### Option B: Manual Conversion
+
+If you already have OpenAI checkpoint files:
+
+```bash
+cd 110-GPT2-hyungkyu
+python utils/convert_openai_weights.py assets/weights/124M assets/weights/124M
+```
+
+**Required packages:** `pip install tensorflow numpy`
+
+---
 
 ## Usage
 
 ### Text Generation
 
-The main program (`main.cpp`) provides several testing options:
+The program accepts command-line arguments for flexible text generation:
 
-```cpp
-int main()
-{
-    // Option 1: Run all basic tests (uses GPU memory)
-    // runBasicTests();
+```bash
+# Show help
+./bin/debug/110-GPT2-hyungkyu.exe --help
 
-    // Option 2: Run text generation with random weights (lightweight)
-    // testGPT2Generation();
+# Use default settings (prompt: "The future of artificial intelligence is", max_tokens: 25)
+./bin/debug/110-GPT2-hyungkyu.exe
 
-    // Option 3: Run pretrained weights test (requires more GPU memory)
-    testGPT2Pretrained();  // Default: prompt="The future of artificial intelligence is", max_tokens=25
+# Custom prompt with default max_tokens (25)
+./bin/debug/110-GPT2-hyungkyu.exe "Once upon a time"
 
-    // Custom usage examples:
-    // testGPT2Pretrained("Once upon a time", 15);  // Custom prompt and token count
-    // testGPT2Pretrained("Hello world");  // Custom prompt, default max_tokens=25
+# Custom prompt and token count
+./bin/debug/110-GPT2-hyungkyu.exe "Once upon a time" 15
 
-    return 0;
-}
+# Another example
+./bin/debug/110-GPT2-hyungkyu.exe "Hello world" 20
 ```
 
-### Customizing Text Generation
+**Command-line Arguments:**
+- **Argument 1 (prompt)**: Text prompt for generation
+  - Default: `"The future of artificial intelligence is"`
+  - Example: `"Once upon a time"`
+- **Argument 2 (max_tokens)**: Maximum number of tokens to generate
+  - Default: `25`
+  - Range: `1-100`
+  - Example: `15`
 
-Edit `main.cpp` to customize the generation:
-
-```cpp
-// Custom prompt and token count
-std::string prompt = "The future of artificial intelligence is";
-uint32_t max_tokens = 28;
-testGPT2Pretrained(prompt, max_tokens);
+**Help Flag:**
+```bash
+./bin/debug/110-GPT2-hyungkyu.exe --help
+# or
+./bin/debug/110-GPT2-hyungkyu.exe -h
 ```
 
 ### Generation Parameters
@@ -177,6 +199,10 @@ runPromptGeneration(gpt2Net, tokenizer,
 ## Example Output
 
 ```
+Configuration:
+  Prompt: "The future of artificial intelligence is"
+  Max tokens: 25
+
 ========================================
 GPT-2 Text Generation Test (Pretrained Weights)
 ========================================
