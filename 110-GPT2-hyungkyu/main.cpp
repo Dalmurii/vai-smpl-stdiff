@@ -66,25 +66,10 @@ void testKVCacheStructure()
 
 /**
  * Test KV cache integrated with AttentionNode
- * (TODO: Implement after Phase 2 completion)
  */
 void testKVCacheWithAttention()
 {
-    std::cout << "\n========================================" << std::endl;
-    std::cout << "KV Cache + Attention Integration Test" << std::endl;
-    std::cout << "========================================\n" << std::endl;
-
-    std::cout << "⚠ This test is not yet implemented." << std::endl;
-    std::cout << "  Status: Waiting for Phase 2 (AttentionNode modification) completion" << std::endl;
-    std::cout << "\nCurrent progress:" << std::endl;
-    std::cout << "  ✓ Phase 1: KV Cache data structure (COMPLETE)" << std::endl;
-    std::cout << "  ⧗ Phase 2: AttentionNode integration (IN PROGRESS)" << std::endl;
-    std::cout << "    - Header modifications: DONE" << std::endl;
-    std::cout << "    - Concatenation shader: TODO" << std::endl;
-    std::cout << "    - Implementation: TODO" << std::endl;
-    std::cout << "  ☐ Phase 3: GPT2Net integration (TODO)" << std::endl;
-    std::cout << "  ☐ Phase 4: Generation loop optimization (TODO)" << std::endl;
-    std::cout << "\nRun with --test-basic to test KV cache structure only.\n" << std::endl;
+    testKVCacheIntegration();
 }
 
 /**
