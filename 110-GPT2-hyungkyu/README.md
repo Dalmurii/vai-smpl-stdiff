@@ -39,6 +39,8 @@ C++ implementation of GPT-2 (Generative Pre-trained Transformer 2) using Vulkan 
 ├── core/                            # Core neural network framework
 │   ├── neuralNet.h                  # Base neural network class
 │   ├── tensor.h                     # Tensor operations
+│   ├── globalContext.h              # Global Vulkan context (device, descriptor pool)
+│   ├── globalContext.cpp            # Global context initialization
 │   └── vulkanApp.h                  # Vulkan compute setup
 ├── tokenizer/                       # BPE tokenizer implementation
 │   ├── tokenizer.h                  # BPE tokenizer class
@@ -204,17 +206,40 @@ The program accepts command-line arguments for flexible text generation:
 
 ### Generation Parameters
 
-You can modify generation parameters in `model/gpt2Test.cpp`:
+Current default settings (configured in `model/gpt2Test.cpp`):
 
 ```cpp
 runPromptGeneration(gpt2Net, tokenizer,
     prompt,
     max_tokens,
-    0.0f,  // temperature: 0 = greedy (deterministic), >0 = sampling
-    50,    // top_k: limit sampling to top-k tokens
+    0.8f,  // temperature: controls randomness (0.7-1.0 recommended)
+    40,    // top_k: sample from top 40 tokens
     42     // seed: random seed for reproducibility
 );
 ```
+
+**Parameter Guide:**
+
+- **Temperature** (recommended: 0.7-1.0)
+  - `0.0`: Greedy decoding (deterministic, but prone to repetition)
+  - `0.5-0.7`: Conservative, more coherent
+  - `0.8-1.0`: Creative, diverse (current default: 0.8)
+  - `>1.0`: Very random, may reduce quality
+
+- **Top-k** (recommended: 40-50)
+  - Limits sampling to top-k most probable tokens
+  - `0`: No filtering (use all tokens)
+  - `40`: Good balance of quality and diversity (current default)
+  - Higher values = more diversity, but may include low-quality tokens
+
+- **Seed**
+  - Set to specific value (e.g., 42) for reproducible results
+  - Set to `-1` for random generation
+
+**Why these settings?**
+- Temperature=0.8 with top-k=40 prevents repetitive text generation
+- Greedy decoding (temperature=0) can cause infinite loops of repeated phrases
+- These settings provide a good balance between coherence and creativity
 
 ## Example Output
 
@@ -237,32 +262,42 @@ Creating GPT-2 network...
 Loading pretrained weights from: 110-GPT2-hyungkyu/assets/weights/124M/gpt2_weights.bin
 ✓ All weights loaded successfully
 
-=== Greedy Decoding (Deterministic) ===
-Prompt: "The future of artificial intelligence is"
-Max tokens: 25
+=== Text Generation (Temperature Sampling) ===
+Prompt: "Once upon a time"
+Max tokens: 50
 
 --- Generated Text ---
-The future of artificial intelligence is uncertain.
+Once upon a time, a number of people were able to find a shelter
+which was not a suitable place to live.
 
-"We're not sure what the future will look like," said Dr. Michael S. Schoenfeld
+These people were all on the same level as the village head,
+which was probably the best possible shelter for them.
 --- End of Generation ---
 
-Generated 25 new tokens (total: 31 tokens)
-Generation time: 1250 ms (1.25 sec)
-Generation speed: 20.00 tokens/sec
+Generated 50 new tokens (total: 54 tokens)
+Generation time: 3861 ms (3.86 sec)
+Generation speed: 12.95 tokens/sec
 ```
 
 ## Performance
 
 - **Model**: GPT-2 Small (124M parameters)
-- **Generation Speed**: ~20 tokens/sec (GPU dependent)
-- **GPU Memory**: ~2GB for full model
-- **Safe Token Limit**: 25 tokens per generation (due to buffer pool accumulation)
+- **Generation Speed**: ~13-20 tokens/sec (GPU dependent)
+- **GPU Memory**: ~1-2GB VRAM for 100 token generation
+- **Token Limit**: 100+ tokens per generation (tested up to 100 tokens)
+- **Descriptor Pool**: Supports up to 10,000 descriptor sets for long-form generation
 
-## Known Limitations
+## Technical Improvements
 
-- **GPU Memory**: BufferPool accumulates memory across generations. Current safe limit is ~25 tokens per run.
-- **Multiple Prompts**: Running multiple prompts in a single execution may cause GPU OOM. Run separately if needed.
+### Memory Management
+- **Global Context Initialization**: Vulkan resources (device, descriptor pool) are now centralized in `core/globalContext.cpp`
+- **Descriptor Pool Scaling**: Increased from 500 to 10,000 descriptor sets to support 100+ token generation
+- **BufferPool**: Auto-managed with size limits to prevent unbounded memory growth
+
+### Text Quality
+- **Temperature Sampling**: Default temperature=0.8 prevents repetitive text generation
+- **Top-k Filtering**: Limits sampling to top 40 tokens for quality control
+- **Reproducibility**: Seed-based generation for consistent results
 
 ## Troubleshooting
 
@@ -274,11 +309,17 @@ Generation speed: 20.00 tokens/sec
 - Run weight download/conversion scripts in `utils/`
 - Verify `assets/weights/124M/gpt2_weights.bin` exists
 
-### "VkResult is UNKNOWN_ERROR"
-- GPU out of memory
-- Reduce `max_tokens` parameter
-- Close other GPU-intensive applications
-- Try running only one test at a time
+### "VkResult is UNKNOWN_ERROR" or Crash During Generation
+- **Descriptor Pool Exhausted**: If crashing at specific token count (e.g., token 28)
+  - This was fixed by increasing descriptor pool size to 10,000
+  - Ensure you're using the latest version with `globalContext.cpp`
+- **GPU Out of Memory**: If using >100 tokens
+  - Current implementation supports up to 100+ tokens
+  - VRAM usage is ~1-2GB for 100 tokens
+  - Close other GPU-intensive applications
+- **Repetitive Text Output**: If seeing repeated phrases
+  - Ensure temperature > 0 (default is 0.8)
+  - Check that top-k sampling is enabled (default is 40)
 
 ### Build Errors
 - Ensure Vulkan SDK is installed

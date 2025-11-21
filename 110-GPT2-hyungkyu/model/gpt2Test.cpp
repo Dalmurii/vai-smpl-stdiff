@@ -312,7 +312,7 @@ void testGPT2Pretrained(const std::string& prompt, uint32_t max_tokens)
         GPT2Net gpt2Net = createNetworkWithPretrainedWeights(config, weights_file);
 
         // Test with full GPT-2 12 layers
-        std::cout << "\n=== Greedy Decoding (Deterministic) ===" << std::endl;
+        std::cout << "\n=== Text Generation (Temperature Sampling) ===" << std::endl;
         std::cout << "Prompt: \"" << prompt << "\"" << std::endl;
         std::cout << "Max tokens: " << max_tokens << std::endl;
         {
@@ -320,9 +320,9 @@ void testGPT2Pretrained(const std::string& prompt, uint32_t max_tokens)
             runPromptGeneration(gpt2Net, tokenizer,
                 prompt,
                 max_tokens,
-                0.0f,  // temperature=0 for greedy decoding (deterministic)
-                0,     // top_k not used in greedy mode
-                42     // seed (not used in greedy mode, but set for consistency)
+                0.8f,  // temperature=0.8 for diverse, coherent generation
+                40,    // top_k=40 to avoid low-quality tokens
+                42     // seed for reproducibility
             );
         }
 
