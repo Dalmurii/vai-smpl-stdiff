@@ -2,13 +2,10 @@
 #define ATTENTION_NODE_H
 
 #include "../../core/neuralNet.h"
+#include "../../core/globalContext.h"
 #include "../../core/vulkanApp.h"
 
 using namespace vk;
-
-// Global device and descriptor pool (defined in test file)
-extern Device netGlobalDevice;
-extern DescriptorPool gDestSetPool;
 
 /**
  * Linear transformation: Y = X @ W^T

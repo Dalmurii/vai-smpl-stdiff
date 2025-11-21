@@ -1,6 +1,7 @@
 #include "gpt2Net.h"
 #include "gpt2Generation.h"
 #include "gpt2Weights.h"
+#include "../core/globalContext.h"
 #include "../core/error.h"
 #include "../tokenizer/bpeTokenizer.h"
 #include <iostream>
@@ -10,9 +11,6 @@
 #include <ctime>
 
 using namespace vk;
-
-extern Device netGlobalDevice;
-extern DescriptorPool gDestSetPool;
 
 void testGPT2()
 {
