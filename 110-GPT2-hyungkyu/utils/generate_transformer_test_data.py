@@ -197,7 +197,7 @@ def generate_layer_norm_test():
         'output': output.tolist()
     }
 
-    with open('layer_norm_test_data.json', 'w') as f:
+    with open('../assets/test_data/layer_norm_test_data.json', 'w') as f:
         json.dump(test_data, f, indent=2)
 
     print(f"LayerNorm test data saved")
@@ -235,7 +235,7 @@ def generate_gelu_test():
         'output': output.tolist()
     }
 
-    with open('gelu_test_data.json', 'w') as f:
+    with open('../assets/test_data/gelu_test_data.json', 'w') as f:
         json.dump(test_data, f, indent=2)
 
     print(f"GELU test data saved")
@@ -283,7 +283,7 @@ def generate_feedforward_test():
         'output': output.tolist()
     }
 
-    with open('feedforward_test_data.json', 'w') as f:
+    with open('../assets/test_data/feedforward_test_data.json', 'w') as f:
         json.dump(test_data, f, indent=2)
 
     print(f"FeedForward test data saved")
@@ -371,7 +371,7 @@ def generate_transformer_block_test():
         'output': output.tolist()
     }
 
-    with open('transformer_block_test_data.json', 'w') as f:
+    with open('../assets/test_data/transformer_block_test_data.json', 'w') as f:
         json.dump(test_data, f, indent=2)
 
     print(f"TransformerBlock test data saved")

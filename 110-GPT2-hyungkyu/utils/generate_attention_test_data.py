@@ -189,10 +189,10 @@ def generate_test_case():
     }
 
     # Save to JSON
-    with open('mha_test_data.json', 'w') as f:
+    with open('../assets/test_data/mha_test_data.json', 'w') as f:
         json.dump(test_data, f, indent=2)
 
-    print("Test data saved to 'mha_test_data.json'")
+    print("Test data saved to '../assets/test_data/mha_test_data.json'")
     print()
     print("Output shape:", output.shape)
     print("Output (first batch, first token):", output[0, 0].tolist())
