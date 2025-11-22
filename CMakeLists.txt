@@ -25,11 +25,25 @@ endif()
 add_subdirectory(${ae2f_CoreScript_Wh})
 
 ae2f_CoreLibFetchX_NS(KhronosGroup KhronosGroup SPIRV-Tools	main)
-ae2f_CoreLibFetchX_NS(KhronosGroup KhronosGroup SPIRV-Reflect	main)
+ae2f_CoreLibFetchX_NS(KhronosGroup KhronosGroup SPIRV-Cross	main)
 ae2f_CoreLibFetchX_NS(KhronosGroup KhronosGroup glslang	main)
 ae2f_CoreLibFetchX_NS(glfw glfw glfw	master)
 
+set(SPIRV_REFLECT_EXECUTABLE OFF CACHE BOOL "Build spirv-reflect executable")
+set(SPIRV_REFLECT_STATIC_LIB ON CACHE BOOL "Build a SPIRV-Reflect static library")
 
+# Execute git to fetch CoreScript when repository does not exist
+if(NOT EXISTS external/Reflect)
+	execute_process(
+		COMMAND git clone 
+		https://github.com/KhronosGroup/SPIRV-Reflect
+		external/Reflect
+		)
+endif()
+
+include_directories(external/Reflect)
+# add subdirectory
+add_subdirectory(external/Reflect)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
@@ -37,6 +51,7 @@ endif()
 
 add_definitions(
 	-DPROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}"
+	-DGLFW_INCLUDE_VULKAN=1
 	)
 
 include_directories(

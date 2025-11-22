@@ -10,6 +10,8 @@ add_executable(${PROJECT_NAME}
     spirvHelpers.cpp
     stb_image.cpp
     jsonParser.cpp
+    ./neuralNodesWithStride.h
+    ./neuralNodesWithStride.cc
 )
 
 add_definitions(
