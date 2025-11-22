@@ -54,6 +54,11 @@ class GPTEmbeddingNode : public Node
     DescriptorSet positionalEmbeddingDescSet;
     DescriptorSet addEmbeddingsDescSet;
 
+    // Helper functions for run() steps
+    void runTokenEmbedding(CommandBuffer cmdBuff, vk::Buffer tokenEmbBuffer, uint32_t BS);
+    void runPositionalEmbedding(CommandBuffer cmdBuff, vk::Buffer posEmbBuffer, uint32_t B, uint32_t S);
+    void runAddEmbeddings(CommandBuffer cmdBuff, vk::Buffer tokenEmbBuffer, vk::Buffer posEmbBuffer, uint32_t BSE);
+
 public:
     GPTEmbeddingNode(uint32_t vocab_size, uint32_t max_length, uint32_t embedding_dim);
     void prepare() override;
