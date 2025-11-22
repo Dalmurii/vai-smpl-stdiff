@@ -1,10 +1,11 @@
-#ifndef MOBILENET_ERROR_H
-#define MOBILENET_ERROR_H
+#ifndef ERROR_H
+#define ERROR_H
 
 #include <vulkan/vulkan_core.h>
 #include <source_location>
 #include <cstdlib>
 #include <cstdio>
+
 
 template<typename T>
 inline void assert_impl(
@@ -28,7 +29,9 @@ inline void assert_impl(
 }
 
 #define ASSERT_(expr) assert_impl((expr), #expr, std::source_location::current())
-#define _ASSERT(expr) ASSERT_(expr)
+#define _ASSERT(expr) ASSERT_(expr)  // Alias for compatibility
+
+
 
 inline const char* vkResult2String(VkResult errorCode)
 {
@@ -70,9 +73,9 @@ inline void operator!(VkResult vr)
     if (vr != VK_SUCCESS)
     {
         fprintf(stderr, "Fatal : VkResult is \"%s\"\n", vkResult2String(vr));
-        throw vr;
+		throw vr;
     }
 }
 
-#endif // MOBILENET_ERROR_H
 
+#endif // ERROR_
